@@ -1,12 +1,15 @@
-import { PrismaClient } from '.prisma/client'
 import cors from '@fastify/cors'
-import { z } from 'zod'
+import jwt from '@fastify/jwt'
 import Fastify from 'fastify'
-import ShortUniqueId from 'short-unique-id'
+
+import { poolRoutes } from './routes/pool'
+import { userRoutes } from './routes/user'
+import { guessRoutes } from './routes/guess'
+import { gameRoutes } from './routes/game'
+import { authRoutes } from './routes/auth'
  
-const prisma = new PrismaClient({
-    log:['query']
-})
+// singleton
+
 
 async function bootstrap(){
     const fastify = Fastify({
@@ -16,50 +19,24 @@ async function bootstrap(){
     await fastify.register(cors, {
         origin: true
     })
+    
 
+    // Em produção isso (o secret) precisa ser uma variável ambiente.
+    await fastify.register(jwt, {
+        secret: 'nlwcopa'
+    })
+
+   await fastify.register(poolRoutes)
+   await fastify.register(userRoutes)    
+   await fastify.register(guessRoutes)
+   await fastify.register(gameRoutes)
+   await fastify.register(authRoutes)
     // http://localhost:3333/pouls/count
-    fastify.get('/pools/count', async ()=>{
-        const count = await prisma.pool.count()
-
-        return {count}
-    })
-
-    fastify.get('/users/count', async ()=>{
-        const count = await prisma.user.count()
-
-        return {count}
-    })
-
-    fastify.get('/guesses/count', async ()=>{
-        const count = await prisma.guess.count()
-
-        return {count}
-    })
-
-    fastify.post('/pools', async (request, reply)=>{
-        const createPoolBody = z.object({
-            title: z.string()
-        })
-
-        const { title } = createPoolBody.parse(request.body) 
-
-        const generate = new ShortUniqueId({length: 6})
-        const code = String(generate()).toUpperCase()
-
-        await prisma.pool.create({
-            data:{
-                title,
-                code
-            }
-        })
-
-        return reply.status(201).send({ title , code})
-    })
-
     await fastify.listen({
         port:3333,
         // host: '0.0.0.0'
     })
+
 }
 
 bootstrap()
