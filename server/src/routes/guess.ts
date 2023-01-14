@@ -36,6 +36,7 @@ export async function guessRoutes(fastify: FastifyInstance) {
         })
 
         if(!participant){
+            console.error('deu ruim aqui 1')
             return reply.status(400).send({
                 message: 'Youre not allowed to create a guess iniside this pool.'
             })
@@ -51,6 +52,7 @@ export async function guessRoutes(fastify: FastifyInstance) {
         })
 
         if(guess){
+            console.error('deu ruim aqui 2')
             return reply.status(400).send({
                 message: 'You already sent a guess to this game on this pool.'
             })
@@ -63,16 +65,18 @@ export async function guessRoutes(fastify: FastifyInstance) {
         })
         
         if(!game){
+            console.error('deu ruim aqui 3')
             return reply.status(400).send({
                 message: 'Game not found.'
             })
         }
-
-        if(game.date <new Date()) { 
-            return reply.status(400).send({
-                message: 'You cannot send guesses after the game date.'
-            })
-        }
+        // TODO: Só para teste
+        // if(game.date <new Date()) { 
+        //     console.error('deu ruim aqui 4')
+        //     return reply.status(400).send({
+        //         message: 'You cannot send guesses after the game date.'
+        //     })
+        // }
 
         await prisma.guess.create({
             data:{
